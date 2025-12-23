@@ -168,7 +168,6 @@ if not st.session_state.logged_in:
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         st.title("🔒 系统登录")
-        st.caption("默认账号: admin / 123456")
         
         with st.form("login_form"):
             username = st.text_input("用户名")
