@@ -60,6 +60,7 @@ TRANSLATIONS = {
         'request_failed': '请求失败',
         'dark_mode': '黑夜模式',
         'language_select': '语言 / Language',
+        'data_management': '数据管理',
         'success_sent': '成功',
         'fail_sent': '失败',
         'exception_sent': '异常'
@@ -110,6 +111,7 @@ TRANSLATIONS = {
         'request_failed': 'Request Failed',
         'dark_mode': 'Dark Mode',
         'language_select': 'Language / 语言',
+        'data_management': 'Data Management',
         'success_sent': 'Success',
         'fail_sent': 'Failed',
         'exception_sent': 'Exception'
@@ -407,32 +409,40 @@ with st.sidebar:
     # 2. 参数设置
     with st.expander(f"⚙️ {t('parameter_settings')}", expanded=True):
         # PGA 设置
-        pga_option = st.selectbox(t('pga_gain'), [1, 2, 64, 128], index=3)
-        if st.button(t('apply_pga'), use_container_width=True):
-            success, msg = set_device_property({"pga": pga_option})
-            if success: 
-                # PGA=xxx is universal, no need too much translation
-                st.toast(f"{t('pga_sent')}{pga_option}", icon="✅")
-                time.sleep(0.5)
-            else: st.toast(msg, icon="❌")
+        st.caption(t('pga_gain'))
+        c_pga_1, c_pga_2 = st.columns([7, 3])
+        with c_pga_1:
+            pga_option = st.selectbox(t('pga_gain'), [1, 2, 64, 128], index=3, label_visibility="collapsed")
+        with c_pga_2:
+            if st.button("Set", key="btn_pga", help=t('apply_pga'), use_container_width=True):
+                success, msg = set_device_property({"pga": pga_option})
+                if success: 
+                    # PGA=xxx is universal, no need too much translation
+                    st.toast(f"{t('pga_sent')}{pga_option}", icon="✅")
+                    time.sleep(0.5)
+                else: st.toast(msg, icon="❌")
             
         st.divider()
         
         # 采样率设置
+        st.caption(t('sample_rate'))
         rate_map = {"10 Hz": 0, "40 Hz": 1, "640 Hz": 2, "1280 Hz": 3}
-        rate_option = st.selectbox(t('sample_rate'), list(rate_map.keys()), index=0)
-        if st.button(t('apply_sample_rate'), use_container_width=True):
-            val = rate_map[rate_option]
-            success, msg = set_device_property({"mode": val})
-            if success: 
-                st.toast(f"{t('mode_sent')}{val}", icon="✅")
-                time.sleep(0.5)
-            else: st.toast(msg, icon="❌")
+        c_rate_1, c_rate_2 = st.columns([7, 3])
+        with c_rate_1:
+            rate_option = st.selectbox(t('sample_rate'), list(rate_map.keys()), index=0, label_visibility="collapsed")
+        with c_rate_2:
+            if st.button("Set", key="btn_rate", help=t('apply_sample_rate'), use_container_width=True):
+                val = rate_map[rate_option]
+                success, msg = set_device_property({"mode": val})
+                if success: 
+                    st.toast(f"{t('mode_sent')}{val}", icon="✅")
+                    time.sleep(0.5)
+                else: st.toast(msg, icon="❌")
 
     st.divider()
     
-    # 3. 系统设置
-    st.subheader(f"🛠️ {t('system_settings')}")
+    # 3. 数据管理
+    st.subheader(f"🛠️ {t('data_management')}")
     # 自动刷新
     auto = st.toggle(t('auto_refresh'), value=st.session_state.auto_refresh)
     if auto:
