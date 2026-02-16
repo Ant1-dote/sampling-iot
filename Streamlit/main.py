@@ -10,6 +10,117 @@ import altair as alt
 from urllib.parse import quote
 
 # ==========================================
+# 国际化配置 (i18n)
+# ==========================================
+
+TRANSLATIONS = {
+    'zh': {
+        'app_title': '物联网控制台',
+        'login_title': '系统登录', 
+        'default_account_hint': '默认账号: admin / 123456',
+        'username': '用户名',
+        'password': '密码', 
+        'login_button': '登录',
+        'login_error': '用户名或密码错误',
+        'console_title': '控制台',
+        'admin_role': '管理员',
+        'logout': '退出',
+        'remote_control': '远程控制',
+        'acquisition_control': '采集控制',
+        'start': '开始',
+        'stop': '停止',
+        'parameter_settings': '参数设置',
+        'pga_gain': 'PGA 增益',
+        'apply_pga': '应用 PGA 设置',
+        'pga_sent': '已发送 PGA=',
+        'sample_rate': '采样率',
+        'apply_sample_rate': '应用采样率设置',
+        'mode_sent': '已发送 Mode=',
+        'system_settings': '系统设置',
+        'auto_refresh': '自动刷新 (3s)',
+        'clear_history': '清空历史数据',
+        'clear_logs': '清空操作日志',
+        'current_voltage': '当前电压',
+        'current_pga': '当前 PGA',
+        'last_updated': '最后更新',
+        'device_status': '设备状态',
+        'online': '在线',
+        'offline_unknown': '离线/未知',
+        'realtime_monitor': '实时监控',
+        'data_details': '数据明细',
+        'operation_logs': '操作日志',
+        'no_history_data': '暂无历史数据，请等待数据刷新...',
+        'download_csv': '下载 CSV 数据', 
+        'no_data': '暂无数据',
+        'no_logs': '暂无操作日志',
+        'command_success': '指令下发成功',
+        'seconds_ago': '秒前',
+        'minutes_ago': '分钟前',
+        'api_error': 'API 错误',
+        'request_failed': '请求失败',
+        'dark_mode': '黑夜模式',
+        'language_select': '语言 / Language',
+        'success_sent': '成功',
+        'fail_sent': '失败',
+        'exception_sent': '异常'
+    },
+    'en': {
+        'app_title': 'IoT Console',
+        'login_title': 'System Login',
+        'default_account_hint': 'Default Account: admin / 123456',
+        'username': 'Username',
+        'password': 'Password',
+        'login_button': 'Login',
+        'login_error': 'Invalid username or password',
+        'console_title': 'Console', 
+        'admin_role': 'Administrator',
+        'logout': 'Logout',
+        'remote_control': 'Remote Control',
+        'acquisition_control': 'Acquisition Control',
+        'start': 'Start',
+        'stop': 'Stop', 
+        'parameter_settings': 'Parameter Settings',
+        'pga_gain': 'PGA Gain',
+        'apply_pga': 'Apply PGA',
+        'pga_sent': 'Sent PGA=',
+        'sample_rate': 'Sample Rate',
+        'apply_sample_rate': 'Apply Sample Rate', 
+        'mode_sent': 'Sent Mode=',
+        'system_settings': 'System Settings',
+        'auto_refresh': 'Auto Refresh (3s)',
+        'clear_history': 'Clear History',
+        'clear_logs': 'Clear Logs',
+        'current_voltage': 'Current Voltage',
+        'current_pga': 'Current PGA',
+        'last_updated': 'Last Updated',
+        'device_status': 'Device Status',
+        'online': 'Online',
+        'offline_unknown': 'Offline/Unknown',
+        'realtime_monitor': 'Real-time Monitor',
+        'data_details': 'Data Details',
+        'operation_logs': 'Operation Logs',
+        'no_history_data': 'No history data, waiting for refresh...',
+        'download_csv': 'Download CSV',
+        'no_data': 'No Data',
+        'no_logs': 'No Logs', 
+        'command_success': 'Command Sent Successfully',
+        'seconds_ago': ' seconds ago',
+        'minutes_ago': ' minutes ago',
+        'api_error': 'API Error', 
+        'request_failed': 'Request Failed',
+        'dark_mode': 'Dark Mode',
+        'language_select': 'Language / 语言',
+        'success_sent': 'Success',
+        'fail_sent': 'Failed',
+        'exception_sent': 'Exception'
+    }
+}
+
+def t(key):
+    lang = st.session_state.get('language', 'zh')
+    return TRANSLATIONS.get(lang, TRANSLATIONS['zh']).get(key, key)
+
+# ==========================================
 # 配置区域
 # ==========================================
 
@@ -91,10 +202,10 @@ def get_device_property(property_name):
                     return prop.get("value"), prop.get("time")
             return None, None
         else:
-            st.error(f"API 错误: {data.get('msg')}")
+            st.error(f"{t('api_error')}: {data.get('msg')}")
             return None, None
     except Exception as e:
-        st.error(f"请求失败: {e}")
+        st.error(f"{t('request_failed')}: {e}")
         return None, None
 
 def set_device_property(params_dict):
@@ -130,30 +241,99 @@ def set_device_property(params_dict):
         timestamp = time.strftime("%H:%M:%S")
         
         if data.get("code") == 0:
-            msg = "指令下发成功"
-            st.session_state.cmd_logs.insert(0, f"[{timestamp}] ✅ 成功: {params_dict}")
+            msg = t('command_success')
+            st.session_state.cmd_logs.insert(0, f"[{timestamp}] ✅ {t('success_sent')}: {params_dict}")
             return True, msg
         else:
-            msg = f"API 错误: {data.get('msg')}"
-            st.session_state.cmd_logs.insert(0, f"[{timestamp}] ❌ 失败: {params_dict} - {msg}")
+            msg = f"{t('api_error')}: {data.get('msg')}"
+            st.session_state.cmd_logs.insert(0, f"[{timestamp}] ❌ {t('fail_sent')}: {params_dict} - {msg}")
             return False, msg
     except Exception as e:
         if 'cmd_logs' not in st.session_state:
             st.session_state.cmd_logs = []
         timestamp = time.strftime("%H:%M:%S")
-        st.session_state.cmd_logs.insert(0, f"[{timestamp}] ❌ 异常: {params_dict} - {e}")
-        return False, f"请求失败: {e}"
+        st.session_state.cmd_logs.insert(0, f"[{timestamp}] ❌ {t('exception_sent')}: {params_dict} - {e}")
+        return False, f"{t('request_failed')}: {e}"
 
 # ==========================================
 # Streamlit 页面逻辑
 # ==========================================
 
 st.set_page_config(
-    page_title="物联网控制台",
+    page_title="IoT Console",
     page_icon="☁️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# --- 状态初始化 ---
+if 'language' not in st.session_state:
+    st.session_state.language = 'zh'
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+
+# --- 黑夜模式 CSS ---
+if st.session_state.dark_mode:
+    st.markdown("""
+        <style>
+        .stApp {
+            background-color: #0E1117;
+            color: #FAFAFA;
+        }
+        [data-testid="stSidebar"] {
+            background-color: #262730;
+            color: #FAFAFA;
+        }
+        .stMetric {
+            background-color: #262730 !important;
+            color: #FAFAFA !important;
+            border: 1px solid #41444C;
+        }
+        h1, h2, h3, h4, h5, h6, p, label {
+            color: #FAFAFA !important;
+        }
+        .stButton button {
+            border-color: #41444C;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+else:
+    # 浅色模式下的 Metric 样式
+    st.markdown("""
+        <style>
+        .stMetric {
+            background-color: #f0f2f6;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+# --- 侧边栏设置 (全局) ---
+# 无论是否登录，都在侧边栏提供语言和主题切换
+with st.sidebar:
+    st.subheader("⚙️ " + t('system_settings'))
+    
+    # 语言切换
+    lang_options = {"中文": "zh", "English": "en"}
+    current_lang_label = "中文" if st.session_state.language == "zh" else "English"
+    selected_lang = st.selectbox(
+        t('language_select'), 
+        options=list(lang_options.keys()), 
+        index=0 if st.session_state.language == 'zh' else 1
+    )
+    if lang_options[selected_lang] != st.session_state.language:
+        st.session_state.language = lang_options[selected_lang]
+        st.rerun()
+
+    # 黑夜模式切换
+    is_dark = st.toggle(t('dark_mode'), value=st.session_state.dark_mode)
+    if is_dark != st.session_state.dark_mode:
+        st.session_state.dark_mode = is_dark
+        st.rerun()
+    
+    st.divider()
+
 # --- 登录认证 ---
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -167,33 +347,24 @@ if not st.session_state.logged_in:
     
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        st.title("🔒 系统登录")
+        st.title("🔒 " + t('login_title'))
+        st.caption(t('default_account_hint'))
         
         with st.form("login_form"):
-            username = st.text_input("用户名")
-            password = st.text_input("密码", type="password")
-            submit = st.form_submit_button("登录", type="primary", use_container_width=True)
+            username = st.text_input(t('username'))
+            password = st.text_input(t('password'), type="password")
+            submit = st.form_submit_button(t('login_button'), type="primary", use_container_width=True)
             
             if submit:
                 if username == "admin" and password == "123456":
                     st.session_state.logged_in = True
                     st.rerun()
                 else:
-                    st.error("用户名或密码错误")
+                    st.error(t('login_error'))
     
     st.stop()
-# 自定义 CSS 样式
-st.markdown("""
-    <style>
-    .stMetric {
-        background-color: #f0f2f6;
-        padding: 10px;
-        border-radius: 5px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
-st.title("☁️ 控制台 ")
+st.title("☁️ " + t('app_title'))
 st.caption(f"Product ID: {PRODUCT_ID} | Device: {DEVICE_NAME}")
 
 # 初始化 Session State
@@ -210,37 +381,38 @@ with st.sidebar:
     with st.container():
         col_user, col_logout = st.columns([2, 1])
         with col_user:
-            st.write("👤 **管理员**")
+            st.write(f"👤 **{t('admin_role')}**")
         with col_logout:
-            if st.button("退出", key="logout_btn", use_container_width=True):
+            if st.button(t('logout'), key="logout_btn", use_container_width=True):
                 st.session_state.logged_in = False
                 st.rerun()
     st.divider()
 
-    st.header("🎮 远程控制")
+    st.header(f"🎮 {t('remote_control')}")
     
     # 1. 采集控制
-    with st.expander("📡 采集控制", expanded=True):
+    with st.expander(f"📡 {t('acquisition_control')}", expanded=True):
         col_sw1, col_sw2 = st.columns(2)
         with col_sw1:
-            if st.button("▶️ 开始", type="primary", use_container_width=True):
+            if st.button(f"▶️ {t('start')}", type="primary", use_container_width=True):
                 success, msg = set_device_property({"enable": True})
                 if success: st.toast(msg, icon="✅")
                 else: st.toast(msg, icon="❌")
         with col_sw2:
-            if st.button("⏹️ 停止", use_container_width=True):
+            if st.button(f"⏹️ {t('stop')}", use_container_width=True):
                 success, msg = set_device_property({"enable": False})
                 if success: st.toast(msg, icon="✅")
                 else: st.toast(msg, icon="❌")
     
     # 2. 参数设置
-    with st.expander("⚙️ 参数设置", expanded=True):
+    with st.expander(f"⚙️ {t('parameter_settings')}", expanded=True):
         # PGA 设置
-        pga_option = st.selectbox("PGA 增益", [1, 2, 64, 128], index=3)
-        if st.button("应用 PGA 设置", use_container_width=True):
+        pga_option = st.selectbox(t('pga_gain'), [1, 2, 64, 128], index=3)
+        if st.button(t('apply_pga'), use_container_width=True):
             success, msg = set_device_property({"pga": pga_option})
             if success: 
-                st.toast(f"已发送 PGA={pga_option}", icon="✅")
+                # PGA=xxx is universal, no need too much translation
+                st.toast(f"{t('pga_sent')}{pga_option}", icon="✅")
                 time.sleep(0.5)
             else: st.toast(msg, icon="❌")
             
@@ -248,33 +420,34 @@ with st.sidebar:
         
         # 采样率设置
         rate_map = {"10 Hz": 0, "40 Hz": 1, "640 Hz": 2, "1280 Hz": 3}
-        rate_option = st.selectbox("采样率", list(rate_map.keys()), index=0)
-        if st.button("应用采样率设置", use_container_width=True):
+        rate_option = st.selectbox(t('sample_rate'), list(rate_map.keys()), index=0)
+        if st.button(t('apply_sample_rate'), use_container_width=True):
             val = rate_map[rate_option]
             success, msg = set_device_property({"mode": val})
             if success: 
-                st.toast(f"已发送 Mode={val}", icon="✅")
+                st.toast(f"{t('mode_sent')}{val}", icon="✅")
                 time.sleep(0.5)
             else: st.toast(msg, icon="❌")
 
     st.divider()
     
     # 3. 系统设置
-    st.subheader("🛠️ 系统设置")
+    st.subheader(f"🛠️ {t('system_settings')}")
     # 自动刷新
-    auto = st.toggle("自动刷新 (3s)", value=st.session_state.auto_refresh)
+    auto = st.toggle(t('auto_refresh'), value=st.session_state.auto_refresh)
     if auto:
         st.session_state.auto_refresh = True
     else:
         st.session_state.auto_refresh = False
         
-    if st.button("🗑️ 清空历史数据", use_container_width=True):
+    if st.button(f"🗑️ {t('clear_history')}", use_container_width=True):
         st.session_state.history_data = []
         st.rerun()
         
-    if st.button("🧹 清空操作日志", use_container_width=True):
+    if st.button(f"🧹 {t('clear_logs')}", use_container_width=True):
         st.session_state.cmd_logs = []
         st.rerun()
+
 
 # --- 主页面逻辑 ---
 
@@ -306,10 +479,10 @@ with m1:
         v_display = f"{float(voltage_val):.4f} V" if voltage_val is not None else "--"
     except:
         v_display = f"{voltage_val} V" if voltage_val is not None else "--"
-    st.metric("⚡ 当前电压", v_display)
+    st.metric(f"⚡ {t('current_voltage')}", v_display)
 
 with m2:
-    st.metric("🎚️ 当前 PGA", f"x{pga_val}" if pga_val is not None else "--")
+    st.metric(f"🎚️ {t('current_pga')}", f"x{pga_val}" if pga_val is not None else "--")
 
 with m3:
     # 计算最后更新时间
@@ -318,14 +491,14 @@ with m3:
             last_time = int(voltage_time) / 1000.0
             diff = time.time() - last_time
             if diff < 60:
-                time_str = f"{diff:.0f} 秒前"
+                time_str = f"{diff:.0f} {t('seconds_ago')}"
             else:
-                time_str = f"{diff/60:.0f} 分钟前"
+                time_str = f"{diff/60:.0f} {t('minutes_ago')}"
         except:
             time_str = "--"
     else:
         time_str = "--"
-    st.metric("🕒 最后更新", time_str)
+    st.metric(f"🕒 {t('last_updated')}", time_str)
 
 with m4:
     # 简单判断在线状态：如果最后更新时间在 5 分钟内，认为在线
@@ -338,11 +511,11 @@ with m4:
         except:
             pass
             
-    status = "🟢 在线" if is_online else "🔴 离线/未知"
-    st.metric("📡 设备状态", status)
+    status = f"🟢 {t('online')}" if is_online else f"🔴 {t('offline_unknown')}"
+    st.metric(f"📡 {t('device_status')}", status)
 
 # 页面主体 Tabs
-tab1, tab2, tab3 = st.tabs(["📈 实时监控", "📊 数据明细", "📝 操作日志"])
+tab1, tab2, tab3 = st.tabs([f"📈 {t('realtime_monitor')}", f"📊 {t('data_details')}", f"📝 {t('operation_logs')}"])
 
 with tab1:
     if st.session_state.history_data:
@@ -350,9 +523,9 @@ with tab1:
         
         # 统计信息
         c1, c2, c3 = st.columns(3)
-        c1.info(f"最高: {df['voltage'].max():.4f} V")
-        c2.info(f"最低: {df['voltage'].min():.4f} V")
-        c3.info(f"平均: {df['voltage'].mean():.4f} V")
+        c1.info(f"Max: {df['voltage'].max():.4f} V") # 'Max/Min/Avg' can be universally understood or translated if strict. I'll keep English/simple.
+        c2.info(f"Min: {df['voltage'].min():.4f} V")
+        c3.info(f"Avg: {df['voltage'].mean():.4f} V")
         
         # 图表
         y_min = df['voltage'].min() * 0.95
@@ -370,8 +543,8 @@ with tab1:
                 x1=1, x2=1, y1=1, y2=0
             )
         ).encode(
-            x=alt.X('time', title='时间'),
-            y=alt.Y('voltage', title='电压 (V)', scale=alt.Scale(domain=[y_min, y_max])),
+            x=alt.X('time', title='Time'),
+            y=alt.Y('voltage', title='Voltage (V)', scale=alt.Scale(domain=[y_min, y_max])),
             tooltip=['time', 'voltage']
         ).properties(
             height=400
@@ -379,7 +552,7 @@ with tab1:
         
         st.altair_chart(chart, use_container_width=True)
     else:
-        st.info("暂无历史数据，请等待数据刷新...")
+        st.info(t('no_history_data'))
 
 with tab2:
     if st.session_state.history_data:
@@ -388,21 +561,21 @@ with tab2:
         
         csv = df.to_csv(index=False).encode('utf-8')
         st.download_button(
-            "📥 下载 CSV 数据",
+            f"📥 {t('download_csv')}",
             csv,
             "voltage_data.csv",
             "text/csv",
             key='download-csv'
         )
     else:
-        st.info("暂无数据")
+        st.info(t('no_data'))
 
 with tab3:
     if st.session_state.cmd_logs:
         for log in st.session_state.cmd_logs:
             st.text(log)
     else:
-        st.caption("暂无操作日志")
+        st.caption(t('no_logs'))
 
 # 自动刷新触发
 if st.session_state.auto_refresh:
